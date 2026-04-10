@@ -56,6 +56,7 @@ _512.jsonl	512	Gelişim (Orta)
 
 _1024.jsonl	1024	Sonuç (İleri)
 
+
 ⚙️ Hızlı Kurulum
 
 
