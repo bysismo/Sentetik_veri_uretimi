@@ -1,0 +1,17 @@
+# Temel derin öğrenme kütüphanesi
+torch
+
+# HuggingFace modelleri ve tokenizer kullanımı için
+transformers
+
+# İlerleme çubuğu (tqdm)
+tqdm
+
+# HuggingFace modellerini hızlı yüklemek için (transformers bunu genellikle otomatik çeker ama eklemekte fayda var)
+accelerate
+
+# 4bit ve 8bit quantization (hassasiyet) ayarları için gereklidir
+bitsandbytes
+
+# Tokenizer'ın daha hızlı çalışması için
+sentencepiece
