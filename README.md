@@ -114,5 +114,7 @@ code JSON
   
 }
 
-
+"Kullanım Önerisi:"
+    
+    Eğitim esnasında tüm kategorileri tek seferde karıştırıp eğitmek yerine; önce _128 ve _256 dosyalarıyla modelin temel yeteneklerini (syntax, temel yapı) oturtun, ardından _512 ve _1024 dosyalarına geçerek modelin karmaşık mantık ve dokümantasyon yeteneğini geliştirin. Bu, modelin 'dil yeteneğini' değil 'kodlama mantığını' kademeli olarak güçlendirecektir.
 
