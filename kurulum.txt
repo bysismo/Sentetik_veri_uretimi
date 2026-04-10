@@ -1,0 +1,14 @@
+Kurulum İçin:
+
+Bu dosyayı requirements.txt adıyla kaydettikten sonra, terminalinizde şu komutu kullanarak tüm bağımlılıkları tek seferde kurabilirsiniz:
+code Bash
+
+pip install -r requirements.txt
+
+Notlar:
+
+    bitsandbytes: Eğer Config içerisindeki PRECISION ayarını 4bit veya 8bit olarak kullanacaksanız, bu kütüphanenin yüklü olması şarttır.
+
+    accelerate: device_map özelliğini kullanırken (balanced veya auto), transformers kütüphanesi arka planda accelerate paketine ihtiyaç duyar.
+
+    sentencepiece: Qwen modelleri gibi modern modellerin tokenizer'ı genellikle sentencepiece kullanır, bu yüzden listenin içinde olması stabiliteyi sağlar.
