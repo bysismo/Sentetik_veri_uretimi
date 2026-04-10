@@ -1,12 +1,25 @@
-
-🚀 Qwen2.5-Coder Otomatik Veri Seti Üreticisi
+🚀 Qwen2.5-Coder: Token Bazlı Akıllı Veri Seti Üreticisi
 
 💡 Neden Kategorize Ediyorum?
 
 
-Veri seti oluştururken, üretiğim içeriklerin 128 ile 1024/1256 token arasında çok geniş bir yelpazeye yayıldığını fark ettim. Eğitim sırasında, kısa bir fonksiyonu (örneğin 128 token) 1024 token uzunluğunda bir bağlam penceresinde eğitmenin, GPU kaynaklarını gereksiz yere tükettiğini ve modelin öğrenme verimini düşürdüğünü gözlemledim.
+Veri seti oluştururken, ürettiğim içeriklerin 128 ile 1024+ token arasında çok geniş bir yelpazeye yayıldığını fark ettim. 
+Eğitim sırasında, kısa bir fonksiyonu (örneğin 128 token) 1024 token uzunluğunda bir bağlam penceresiyle eğitmenin, 
+GPU kaynaklarını gereksiz yere tükettiğini ve modelin öğrenme verimini düşürdüğünü gözlemledim.
 
-Veri setimi inceledikçe, üretilen veriyi token aralıklarına göre kategorize etmenin; modelin "cortex" yapısını (öğrenme derinliğini) kademeli olarak büyütmek için en mantıklı yol olduğuna kanaat getirdim.
+Veri setimi inceledikçe, üretilen veriyi token aralıklarına göre kategorize etmenin; 
+modelin "cortex" yapısını (öğrenme derinliğini) kademeli olarak büyütmek için en mantıklı yol olduğuna kanaat getirdim.
+
+Stratejim:
+
+    Başlangıç Eğitimi (128/256 Token): Temel mantık ve kısa kod parçacıkları.
+
+    Gelişim Aşaması (384/512 Token): Orta seviye modüller ve algoritmik yapılar.
+
+    Final (768/1024+ Token): Karmaşık projeler ve detaylı sınıf mimarileri.
+
+Bu kademeli geçişin, modelin çok daha kararlı ve düşük maliyetli eğitileceğine inanıyorum. 
+Henüz kesin bir akademik ispatım yok, ancak bu yöntemle deneme-yanılma süreçlerini daha verimli hale getirebilirim.
 
 
 Stratejim:
