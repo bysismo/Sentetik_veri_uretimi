@@ -1,85 +1,73 @@
+
 🚀 Qwen2.5-Coder Otomatik Veri Seti Üreticisi
+💡 Giriş: Neden Kategorize Ediyorum?
 
-Kod yazan herkes veri seti oluşturur, kategorize eder. 
-Bu script, Qwen2.5-Coder modelini kullanarak İngilizce konu başlıklarını; 
-açıklama ve kod içeren JSON formatında bir veri setine dönüştürür.
+Veri seti oluştururken, üretiğim içeriklerin 128 ile 1024/1256 token arasında çok geniş bir yelpazeye yayıldığını fark ettim. Eğitim sırasında, kısa bir fonksiyonu (örneğin 128 token) 1024 token uzunluğunda bir bağlam penceresinde eğitmenin, GPU kaynaklarını gereksiz yere tükettiğini ve modelin öğrenme verimini düşürdüğünü gözlemledim.
 
-⚡ Neden Bu Script?
+Veri setimi inceledikçe, üretilen veriyi token aralıklarına göre kategorize etmenin; modelin "cortex" yapısını (öğrenme derinliğini) kademeli olarak büyütmek için en mantıklı yol olduğuna kanaat getirdim.
 
-    Token Bazlı Kategori Sistemi: Veriyi token uzunluğuna göre _128, _256, _512, _768, _1024 dosyalarına otomatik böler.
+Stratejim:
 
-    Akıllı Kaldığı Yerden Devam: output_base dosyasını kontrol eder, tamamlanmış görevleri atlayarak GPU'nuzu boşuna yormaz.
+    Başlangıç Eğitimi (128/256 Token): Temel mantık ve kısa kod parçacıkları.
 
-    JSON Filtreleme: Modelin saçmaladığı veya formatı bozduğu yanıtları otomatik reddeder; sadece kusursuz JSON verilerini kaydeder.
+    Gelişim Aşaması (384/512 Token): Orta seviye modüller ve algoritmik yapılar.
 
-    Tam Kontrol: Batch size, temperature, precision (4bit/8bit/16bit) ayarlarıyla donanımınıza göre optimize edilebilir.
+    Final (768/1024+ Token): Karmaşık projeler ve detaylı sınıf mimarileri.
+    
+
+Bu kademeli geçişin, modelin çok daha kararlı ve düşük maliyetli eğitileceğine inanıyorum. 
+Henüz kesin bir ispatım yok, ancak bu yöntemle deneme-yanılma süreçlerini daha verimli hale getirebilirim.
+
+⚡ Scriptin Özellikleri
+
+    Akıllı Gruplandırma: Veriyi token limitlerine göre _128, _256, _512, _1024 dosyalarına otomatik böler.
+
+    Kaldığı Yerden Devam: output_base dosyasını kontrol eder; yarıda kalan işlemleri tqdm ile takip ederek süreci kaldığı yerden devam ettirir.
+
+    JSON Güvenliği: extract_json fonksiyonu ile modelin çıktısındaki gürültüyü (markdown, konuşma metni) temizler, sadece temiz JSON verisini kaydeder.
+
+    Donanım Optimizasyonu: 4bit, 8bit, 16bit seçenekleri ile VRAM kullanımını yönetmenizi sağlar.
 
 📥 Veri Seti Hazırlığı
 
-Scriptin çalışması için INPUT_FILE yolunda belirttiğiniz dosyanın JSONL (JSON Lines) formatında olması gerekir. 
-Her satırda bir görev bulunmalı ve şu anahtarları içermelidir:
+INPUT_FILE yolundaki dosyanız JSONL formatında olmalıdır. 
+Her satır bir görev içerir:
+
 code JSON
 
-{"ingilizce": "How to use list comprehension in Python", "turkce": "Python'da liste üreteçleri nasıl kullanılır"}
-{"ingilizce": "Implement binary search algorithm", "turkce": "İkili arama algoritması gerçekle"}
+{"ingilizce": "How to implement QuickSort?", "turkce": "QuickSort nasıl yazılır?"}
+{"ingilizce": "Write a Python class for a library", "turkce": "Kütüphane için sınıf yaz"}
 
-    ingilizce: Modelin üzerinde çalışacağı ana konu başlığı.
-
-    turkce: Çıktı verisinde kullanılacak açıklayıcı soru kökü.
-
-🛠 Çıktı Formatı
-
-Script başarıyla işlediği her satırı şu formatta kaydeder:
-code JSON
-
-{
-  "ingilizce": "Implement binary search",
-  "turkce": "İkili arama algoritması gerçekle için örnek bir uygulama yazarmısın",
-  "explanation": "Binary search, sıralı bir dizide aranan elemanın indeksini...",
-  "python": ["```python\ndef binary_search(arr, target):\n    # kod buraya gelir...\n```"]
-}
-
-
-📊 Token Kategorizasyonu
-
-Scriptin en güçlü yanı, veriyi işlerken token sayısına göre sınıflandırmasıdır. Çıktı klasörünüzde şu dosyalar oluşur:
-Kategori	Token Limiti	Kullanım Amacı
-_128.jsonl	0-128	Kısa fonksiyonlar ve hızlı örnekler
-_256.jsonl	129-256	Orta seviye algoritmalar
-_512.jsonl	257-512	Standart modül yapıları
-_1024.jsonl	513-1024	Kompleks projeler ve detaylı sınıflar
+📊 Token Dağılımı ve Kategoriler
+Dosya Ön Eki	Token Limiti	Eğitim Aşaması
+_128.jsonl	128	Başlangıç (Temel)
+_256.jsonl	256	Başlangıç (Temel)
+_512.jsonl	512	Gelişim (Orta)
+_1024.jsonl	1024	Sonuç (İleri)
 ⚙️ Hızlı Kurulum
 
-1. Gereksinimleri Yükleyin:
-code Bash
+    Bağımlılıkları Yükleyin:
+    code Bash
 
 pip install -r requirements.txt
 
-2. Ayarları Yapın:
-   
-Config sınıfı içinde:
+Ayarları Yapın:
+Config sınıfından PRECISION ve BATCH_SIZE değerlerini donanımınıza göre düzenleyin.
 
-    PRECISION: GPU VRAM'inize göre (4bit, 8bit, 16bit) seçin.
-
-    BATCH_SIZE: Bellek kapasitenize göre 10-50 arası değerler deneyin.
-
-    INPUT_FILE: Veri setinizi gösterin.
-
-4. Çalıştırın:
+Çalıştırın:
 code Bash
 
-python main.py
+    python main.py
 
-🛠 Teknik Detaylar
+🛠 Çıktı Formatı
 
-    Model: Varsayılan olarak Qwen/Qwen2.5-Coder-7B-Instruct kullanır.
+Script, her bir görevi şu formatta kayıt altına alır:
+code JSON
 
-    JSON Extraction: extract_json fonksiyonu, modelin markdown veya ekstra metinlerini temizleyip saf JSON çıktısını yakalar.
-
-    İstatistik: İşlem bittiğinde her kategorideki başarı oranını % olarak loglar (örn: %12.5 = 128 token).
-
-⚠️ Önemli İpucu
-
-Config içindeki TOKEN_CATEGORIES sözlüğünü projenizin ihtiyacına göre özelleştirebilirsiniz. 
-Eğer modelinizin daha uzun kodlar yazmasını istiyorsanız MAX_NEW_TOKENS değerini yükseltip yeni bir kategori tanımlamanız yeterlidir.
+{
+  "ingilizce": "...",
+  "turkce": "... için örnek bir uygulama yazarmısın",
+  "explanation": "Teknik açıklama...",
+  "python": ["```python\n# kodlar...\n```"]
+}
 
