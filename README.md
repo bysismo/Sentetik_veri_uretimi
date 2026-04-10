@@ -1,68 +1,85 @@
 🚀 Qwen2.5-Coder Otomatik Veri Seti Üreticisi
 
-Bu proje, Qwen2.5-Coder-7B-Instruct modelini kullanarak verilen İngilizce konu başlıklarını, Türkçe karşılıklarıyla eşleştirip; bu konular hakkında teknik açıklamalar ve örnek Python kodları içeren sentetik bir veri seti oluşturmanızı sağlar.
+Kod yazan herkes veri seti oluşturur, kategorize eder. 
+Bu script, Qwen2.5-Coder modelini kullanarak İngilizce konu başlıklarını; 
+açıklama ve kod içeren JSON formatında bir veri setine dönüştürür.
 
-Özellikle büyük ölçekli dil modellerini eğitmek veya ince ayar (fine-tuning) yapmak için ihtiyaç duyulan "Instruction-Response" formatında veri üretmek amacıyla geliştirilmiştir.
-✨ Temel Özellikler
+⚡ Neden Bu Script?
 
-    Otomatik JSON Çıktısı: Modelden gelen ham veriyi temizleyip belirli bir JSON şemasına sokar.
+    Token Bazlı Kategori Sistemi: Veriyi token uzunluğuna göre _128, _256, _512, _768, _1024 dosyalarına otomatik böler.
 
-    Token Bazlı Gruplandırma: Üretilen kodları token uzunluklarına göre (128, 256, 512, 1024 vb.) otomatik kategorize eder.
+    Akıllı Kaldığı Yerden Devam: output_base dosyasını kontrol eder, tamamlanmış görevleri atlayarak GPU'nuzu boşuna yormaz.
 
-    Hata Payı Yönetimi: Geçersiz JSON çıktılarını ayıklar.
+    JSON Filtreleme: Modelin saçmaladığı veya formatı bozduğu yanıtları otomatik reddeder; sadece kusursuz JSON verilerini kaydeder.
 
-    Kaldığı Yerden Devam Etme: output_base dosyasını kontrol ederek daha önce işlenmiş konuları atlar, böylece yarıda kalan işlemleri güvenle devam ettirmenize olanak tanır.
+    Tam Kontrol: Batch size, temperature, precision (4bit/8bit/16bit) ayarlarıyla donanımınıza göre optimize edilebilir.
 
-    Esnek Donanım Desteği: 4bit, 8bit, 16bit ve 32bit hassasiyet seçenekleriyle farklı VRAM kapasitelerine sahip GPU'larda çalışabilir.
+📥 Veri Seti Hazırlığı
 
-🛠 Kurulum ve Gereksinimler
+Scriptin çalışması için INPUT_FILE yolunda belirttiğiniz dosyanın JSONL (JSON Lines) formatında olması gerekir. 
+Her satırda bir görev bulunmalı ve şu anahtarları içermelidir:
+code JSON
 
-Gerekli kütüphaneleri yükleyin:
-code Bash
+{"ingilizce": "How to use list comprehension in Python", "turkce": "Python'da liste üreteçleri nasıl kullanılır"}
+{"ingilizce": "Implement binary search algorithm", "turkce": "İkili arama algoritması gerçekle"}
 
-pip install torch transformers tqdm
+    ingilizce: Modelin üzerinde çalışacağı ana konu başlığı.
 
-⚙️ Yapılandırma
+    turkce: Çıktı verisinde kullanılacak açıklayıcı soru kökü.
 
-Config sınıfı içerisinden kendi sisteminize göre şu ayarları yapabilirsiniz:
+🛠 Çıktı Formatı
 
-    INPUT_FILE: Veri setinizin bulunduğu .jsonl dosyası.
-
-    OUTPUT_BASE: Çıktı dosyalarınızın kaydedileceği dizin ve ön ek.
-
-    PRECISION: GPU VRAM durumunuza göre 4bit, 8bit veya 16bit seçimi yapın.
-
-    BATCH_SIZE: GPU belleğine göre aynı anda kaç örnek işleneceğini belirler.
-
-🚀 Kullanım
-
-    Veri setinizi 100k_ingilizce_turkce.jsonl formatında hazırlayın (içerisinde ingilizce ve turkce anahtarları olmalıdır).
-
-    Kod içerisindeki dosya yollarını (özellikle /kaggle/ yollarını) kendi yerel dizin yapınıza göre güncelleyin.
-
-    Çalıştırın:
-    code Bash
-
-    python main.py
-
-📊 Çıktı Yapısı
-
-Program, veriyi token uzunluklarına göre klasörleyerek _128.jsonl, _256.jsonl vb. dosyalar oluşturur. Her satır şu formattadır:
+Script başarıyla işlediği her satırı şu formatta kaydeder:
 code JSON
 
 {
-  "ingilizce": "Topic Name",
-  "turkce": "Topic Name için örnek bir uygulama yazarmısın",
-  "explanation": "Teknik açıklama burada yer alır...",
-  "python": ["```python\nprint('Kod buraya gelir')\n```"]
+  "ingilizce": "Implement binary search",
+  "turkce": "İkili arama algoritması gerçekle için örnek bir uygulama yazarmısın",
+  "explanation": "Binary search, sıralı bir dizide aranan elemanın indeksini...",
+  "python": ["```python\ndef binary_search(arr, target):\n    # kod buraya gelir...\n```"]
 }
 
-⚠️ Dikkat Edilmesi Gerekenler
 
-    VRAM Kullanımı: 4bit veya 8bit kullanmak büyük modelleri tüketici sınıfı kartlarda (örn. RTX 3060/4060) çalıştırmanıza olanak tanır.
+📊 Token Kategorizasyonu
 
-    Sistem Talimatı: system_instruction değişkeni, modelin çıktı formatını belirler. Eğer model JSON formatını bozarsa bu talimatı daha katı hale getirebilirsiniz.
+Scriptin en güçlü yanı, veriyi işlerken token sayısına göre sınıflandırmasıdır. Çıktı klasörünüzde şu dosyalar oluşur:
+Kategori	Token Limiti	Kullanım Amacı
+_128.jsonl	0-128	Kısa fonksiyonlar ve hızlı örnekler
+_256.jsonl	129-256	Orta seviye algoritmalar
+_512.jsonl	257-512	Standart modül yapıları
+_1024.jsonl	513-1024	Kompleks projeler ve detaylı sınıflar
+⚙️ Hızlı Kurulum
 
-📝 Lisans
+1. Gereksinimleri Yükleyin:
+code Bash
 
-Bu proje [MIT Lisansı] altında sunulmuştur.
+pip install -r requirements.txt
+
+2. Ayarları Yapın:
+   
+Config sınıfı içinde:
+
+    PRECISION: GPU VRAM'inize göre (4bit, 8bit, 16bit) seçin.
+
+    BATCH_SIZE: Bellek kapasitenize göre 10-50 arası değerler deneyin.
+
+    INPUT_FILE: Veri setinizi gösterin.
+
+4. Çalıştırın:
+code Bash
+
+python main.py
+
+🛠 Teknik Detaylar
+
+    Model: Varsayılan olarak Qwen/Qwen2.5-Coder-7B-Instruct kullanır.
+
+    JSON Extraction: extract_json fonksiyonu, modelin markdown veya ekstra metinlerini temizleyip saf JSON çıktısını yakalar.
+
+    İstatistik: İşlem bittiğinde her kategorideki başarı oranını % olarak loglar (örn: %12.5 = 128 token).
+
+⚠️ Önemli İpucu
+
+Config içindeki TOKEN_CATEGORIES sözlüğünü projenizin ihtiyacına göre özelleştirebilirsiniz. 
+Eğer modelinizin daha uzun kodlar yazmasını istiyorsanız MAX_NEW_TOKENS değerini yükseltip yeni bir kategori tanımlamanız yeterlidir.
+
